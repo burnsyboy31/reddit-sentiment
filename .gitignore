@@ -1,0 +1,13 @@
+# Ignore Python bytecode
+*.pyc
+__pycache__/
+
+# Ignore virtual environments
+venv/
+.venv/
+
+# Ignore .env files containing sensitive information
+.env
+
+# Ignore CSV files or any large data files
+*.csv
