@@ -8,6 +8,3 @@ venv/
 
 # Ignore .env files containing sensitive information
 .env
-
-# Ignore CSV files or any large data files
-*.csv
