@@ -37,7 +37,7 @@ jobs:
         run: |
           git config user.name "burnsyboy31"
           git config user.email "zachpburns@gmail.com"
-          git add data/*
+          git add -f data/*.csv  # 👈 force-add untracked .csv
           git commit -m "📊 Auto-update WSB data at $(date)"
-          git push
+          git push || echo "Nothing to push"
         continue-on-error: true  # avoids failing the job if no changes
