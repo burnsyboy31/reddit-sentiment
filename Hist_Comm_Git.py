@@ -56,7 +56,7 @@ def get_comments(submission, seen_comment_ids):
     return comments
 
 def get_seen_comment_ids():
-    csv_files = sorted(glob("wsb_comments_*.csv"))
+    csv_files = sorted(glob("data/wsb_comments_*.csv"))
     if not csv_files:
         return set()
     latest_file = csv_files[-1]
