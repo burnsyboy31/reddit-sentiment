@@ -1,0 +1,6 @@
+praw
+pandas
+spacy
+openai
+python-dotenv
+tqdm
