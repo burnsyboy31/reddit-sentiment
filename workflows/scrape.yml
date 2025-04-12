@@ -33,11 +33,11 @@ jobs:
         run: python Hist_Comm_Git.py
 
       # Optional: auto-commit any output files (e.g., CSV/JSON in /data folder)
-      - name: Commit and push new data
+      - name: Commit and push updated master CSV
         run: |
           git config user.name "burnsyboy31"
           git config user.email "zachpburns@gmail.com"
-          git add -f data/*.csv  # 👈 force-add untracked .csv
-          git commit -m "📊 Auto-update WSB data at $(date)"
-          git push || echo "Nothing to push"
+          git add -f data/wsb_master_comments.csv
+          git commit -m "📊 Auto-update WSB master at $(date)" || echo "Nothing to commit"
+          ggit push || echo "Nothing to push"
         continue-on-error: true  # avoids failing the job if no changes

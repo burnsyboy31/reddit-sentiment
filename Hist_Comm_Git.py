@@ -3,7 +3,6 @@ import pandas as pd
 import time
 import re
 from datetime import datetime
-import string
 import spacy
 import os
 from glob import glob
@@ -11,7 +10,6 @@ from glob import glob
 nlp = spacy.load("en_core_web_sm")
 
 # --- Reddit API setup ---
-
 reddit = praw.Reddit(
     client_id = os.getenv("REDDIT_CLIENT_ID"),
     client_secret = os.getenv("REDDIT_SECRET"),
@@ -31,18 +29,14 @@ def clean_text(text):
 
 def get_pinned_posts(subreddit_name):
     subreddit = reddit.subreddit(subreddit_name)
-    pinned = []
-    for submission in subreddit.hot(limit=10):
-        if submission.stickied:
-            pinned.append(submission)
-    return pinned
+    return [s for s in subreddit.hot(limit=10) if s.stickied]
 
 def get_comments(submission, seen_comment_ids):
     submission.comments.replace_more(limit=0)
     comments = []
     for comment in submission.comments.list():
         if comment.id in seen_comment_ids:
-            continue  # Skip duplicate
+            continue
         clean_body = clean_text(comment.body)
         comments.append({
             'comment_id': comment.id,
@@ -55,20 +49,18 @@ def get_comments(submission, seen_comment_ids):
         })
     return comments
 
-def get_seen_comment_ids():
-    csv_files = sorted(glob("data/wsb_comments_*.csv"))
-    if not csv_files:
-        return set()
-    latest_file = csv_files[-1]
-    df = pd.read_csv(latest_file)
-    return set(df['comment_id'].dropna().unique())
+def load_master_csv(master_path):
+    if os.path.exists(master_path):
+        return pd.read_csv(master_path)
+    else:
+        return pd.DataFrame()
 
 def main():
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = f"wsb_comments_{timestamp}.csv"
-    output_path = f"data/wsb_comments_{timestamp}.csv"
+    master_path = "data/wsb_master_comments.csv"
+    os.makedirs("data", exist_ok=True)
 
-    seen_comment_ids = get_seen_comment_ids()
+    existing_df = load_master_csv(master_path)
+    seen_comment_ids = set(existing_df['comment_id'].dropna().unique())
     print(f"Loaded {len(seen_comment_ids)} previously seen comments.")
 
     all_comments = []
@@ -82,9 +74,16 @@ def main():
         all_comments.extend(comments)
         time.sleep(2)
 
-    df = pd.DataFrame(all_comments)
-    df.to_csv(filename, index=False)
-    print(f"Export complete: {filename}")
+    if not all_comments:
+        print("✅ No new comments to add.")
+        return
+
+    new_df = pd.DataFrame(all_comments)
+    combined_df = pd.concat([existing_df, new_df], ignore_index=True)
+    combined_df = combined_df.drop_duplicates(subset=["comment_id"])
+
+    combined_df.to_csv(master_path, index=False)
+    print(f"✅ Master file updated: {master_path} — Total rows: {len(combined_df)}")
 
 if __name__ == "__main__":
     main()
