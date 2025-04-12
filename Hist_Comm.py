@@ -5,15 +5,17 @@ import re
 from datetime import datetime
 import string
 import spacy
+import os
+from glob import glob
+
 nlp = spacy.load("en_core_web_sm")
 
 # --- Reddit API setup ---
 reddit = praw.Reddit(
-    client_id="LDWwnKfRexKaQYP5yH_4DA",          # Replace with your client ID
-    client_secret="OFT7BJXhFMlDPfWQFYZNCK6RczK4BA",  # Replace with your client secret
-    user_agent="sentiment-test-script-zb"   
+    client_id="LDWwnKfRexKaQYP5yH_4DA",
+    client_secret="OFT7BJXhFMlDPfWQFYZNCK6RczK4BA",
+    user_agent="sentiment-test-script-zb"
 )
-
 
 def clean_text(text):
     text = text.lower()
@@ -26,7 +28,6 @@ def clean_text(text):
     tokens = [token.lemma_ for token in doc if not token.is_stop and token.is_alpha]
     return ' '.join(tokens)
 
-# Get pinned posts
 def get_pinned_posts(subreddit_name):
     subreddit = reddit.subreddit(subreddit_name)
     pinned = []
@@ -35,11 +36,12 @@ def get_pinned_posts(subreddit_name):
             pinned.append(submission)
     return pinned
 
-# Get comments
-def get_comments(submission):
+def get_comments(submission, seen_comment_ids):
     submission.comments.replace_more(limit=0)
     comments = []
     for comment in submission.comments.list():
+        if comment.id in seen_comment_ids:
+            continue  # Skip duplicate
         clean_body = clean_text(comment.body)
         comments.append({
             'comment_id': comment.id,
@@ -52,22 +54,35 @@ def get_comments(submission):
         })
     return comments
 
-# Main
+def get_seen_comment_ids():
+    csv_files = sorted(glob("wsb_comments_*.csv"))
+    if not csv_files:
+        return set()
+    latest_file = csv_files[-1]
+    df = pd.read_csv(latest_file)
+    return set(df['comment_id'].dropna().unique())
+
 def main():
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"wsb_comments_{timestamp}.csv"
+
+    seen_comment_ids = get_seen_comment_ids()
+    print(f"Loaded {len(seen_comment_ids)} previously seen comments.")
+
     all_comments = []
     pinned_posts = get_pinned_posts('wallstreetbets')
     print(f"Found {len(pinned_posts)} pinned posts.")
 
     for post in pinned_posts:
         print(f"Fetching comments for post: {post.title}")
-        comments = get_comments(post)
-        print(f" - Retrieved {len(comments)} comments")
+        comments = get_comments(post, seen_comment_ids)
+        print(f" - Retrieved {len(comments)} new comments")
         all_comments.extend(comments)
-        time.sleep(2)  # Respect rate limit
+        time.sleep(2)
 
     df = pd.DataFrame(all_comments)
-    df.to_csv('wsb_cleaned_comments.csv', index=False)
-    print("Export complete: wsb_cleaned_comments.csv")
+    df.to_csv(filename, index=False)
+    print(f"Export complete: {filename}")
 
 if __name__ == "__main__":
     main()
