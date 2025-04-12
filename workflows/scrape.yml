@@ -39,5 +39,5 @@ jobs:
           git config user.email "zachpburns@gmail.com"
           git add -f data/wsb_master_comments.csv
           git commit -m "📊 Auto-update WSB master at $(date)" || echo "Nothing to commit"
-          ggit push || echo "Nothing to push"
+          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }} HEAD:main || echo "Nothing to push"
         continue-on-error: true  # avoids failing the job if no changes
