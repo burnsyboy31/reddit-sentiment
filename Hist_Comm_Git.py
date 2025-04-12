@@ -66,6 +66,7 @@ def get_seen_comment_ids():
 def main():
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     filename = f"wsb_comments_{timestamp}.csv"
+    output_path = f"data/wsb_comments_{timestamp}.csv"
 
     seen_comment_ids = get_seen_comment_ids()
     print(f"Loaded {len(seen_comment_ids)} previously seen comments.")
