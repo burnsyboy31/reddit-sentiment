@@ -1,0 +1,46 @@
+import pandas as pd
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
+import os
+
+# === Paths ===
+model_path = "reddit-sentiment/trained_model/reddit-roberta-final"
+master_file = "reddit-sentiment/data/wsb_master_comments.csv"
+labeled_file = "reddit-sentiment/data/labeled_comments.csv"
+
+# === Load Model ===
+tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
+model = AutoModelForSequenceClassification.from_pretrained(model_path, local_files_only=True)
+model.eval()
+
+# === Load Master and Previous Labeled Data ===
+df_master = pd.read_csv(master_file)
+if os.path.exists(labeled_file):
+    df_prev = pd.read_csv(labeled_file)
+    seen_ids = set(df_prev['comment_id'])
+else:
+    df_prev = pd.DataFrame(columns=["comment_id", "raw_body", "score", "sentiment_label"])
+    seen_ids = set()
+
+# === Filter New Comments ===
+df_new = df_master[~df_master['comment_id'].isin(seen_ids)].copy()
+if df_new.empty:
+    print("✅ No new comments to label.")
+    exit()
+
+# === Predict Labels ===
+label_map = {0: "bullish", 1: "bearish", 2: "neutral"}
+inputs = tokenizer(df_new["raw_body"].tolist(), return_tensors="pt", padding=True, truncation=True, max_length=128)
+with torch.no_grad():
+    outputs = model(**inputs)
+    preds = torch.argmax(outputs.logits, dim=1)
+df_new["sentiment_label"] = [label_map[i.item()] for i in preds]
+
+# === Keep Only Needed Columns ===
+df_new = df_new[["comment_id", "raw_body", "score", "sentiment_label"]]
+
+# === Append and Save ===
+df_final = pd.concat([df_prev, df_new], ignore_index=True)
+df_final.to_csv(labeled_file, index=False)
+
+print(f"✅ Labeled {len(df_new)} new comments. Saved to {labeled_file}.")
