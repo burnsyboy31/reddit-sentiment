@@ -6,7 +6,7 @@ import os
 login(token=os.getenv("HF_TOKEN"))
 # === Paths ===
 
-model_path = "trained_model/reddit-roberta-final"
+model_path = "pbandjatairport/reddit-sentiment-v1"
 master_file = "data/wsb_master_comments.csv"
 labeled_file = "data/labeled_comments.csv"
 
