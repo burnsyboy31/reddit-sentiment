@@ -11,8 +11,8 @@ master_file = "data/wsb_master_comments.csv"
 labeled_file = "data/labeled_comments.csv"
 
 # === Load Model ===
-tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
-model = AutoModelForSequenceClassification.from_pretrained(model_path, local_files_only=True)
+tokenizer = AutoTokenizer.from_pretrained(model_path)
+model = AutoModelForSequenceClassification.from_pretrained(model_path)
 model.eval()
 
 # === Load Master and Previous Labeled Data ===
