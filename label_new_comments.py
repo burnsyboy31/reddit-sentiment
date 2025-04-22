@@ -21,7 +21,7 @@ if os.path.exists(labeled_file):
     df_prev = pd.read_csv(labeled_file)
     seen_ids = set(df_prev['comment_id'])
 else:
-    df_prev = pd.DataFrame(columns=["comment_id", "raw_body", "score", "sentiment_label"])
+    df_prev = pd.DataFrame(columns=["comment_id", "raw_body", "score", "sentiment_label","created_utc"])
     seen_ids = set()
 
 # === Filter New Comments ===
@@ -39,7 +39,7 @@ with torch.no_grad():
 df_new["sentiment_label"] = [label_map[i.item()] for i in preds]
 
 # === Keep Only Needed Columns ===
-df_new = df_new[["comment_id", "raw_body", "score", "sentiment_label"]]
+df_new = df_new[["comment_id", "raw_body", "score", "sentiment_label","created_utc"]]
 
 # === Append and Save ===
 df_final = pd.concat([df_prev, df_new], ignore_index=True)
