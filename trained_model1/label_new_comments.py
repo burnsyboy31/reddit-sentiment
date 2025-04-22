@@ -1,9 +1,11 @@
 import pandas as pd
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from huggingface_hub import login
 import torch
 import os
-
+login(token=os.getenv("HF_TOKEN"))
 # === Paths ===
+
 model_path = "reddit-sentiment/trained_model/reddit-roberta-final"
 master_file = "reddit-sentiment/data/wsb_master_comments.csv"
 labeled_file = "reddit-sentiment/data/labeled_comments.csv"
