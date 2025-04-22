@@ -1,15 +1,15 @@
-name: Scrape Reddit Every 12 Hours
+name: Label New Reddit Comments
 
 on:
   schedule:
-    - cron: '0 */12 * * *'
+    - cron: '0 */6 * * *'  # every 6 hours
   workflow_dispatch:
 
 permissions:
-  contents: write  # 👈 THIS IS KEY
+  contents: write  # needed to push labeled file back
 
 jobs:
-  scrape:
+  label:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,19 +23,18 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
-          python -m spacy download en_core_web_sm
+          pip install torch transformers pandas
 
-      - name: Run scraper
-        run: python Hist_Comm_Git.py
+      - name: Run label script
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}  # if using a private model
+        run: |
+          python label_new_comments.py
 
-      - name: Commit and push updated master CSV
+      - name: Commit and push updated CSV
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f data/wsb_master_comments.csv
-          git commit -m "📊 Auto-update WSB data at $(date)" || echo "Nothing to commit"
-          git push origin HEAD:main || echo "Nothing to push"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
+          git add wsb_labeled_comments.csv
+          git commit -m "🤖 Auto-labeled new Reddit comments on $(date)" || echo "No changes to commit"
+          git push
