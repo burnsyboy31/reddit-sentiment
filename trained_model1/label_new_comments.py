@@ -6,9 +6,9 @@ import os
 login(token=os.getenv("HF_TOKEN"))
 # === Paths ===
 
-model_path = "reddit-sentiment/trained_model/reddit-roberta-final"
-master_file = "reddit-sentiment/data/wsb_master_comments.csv"
-labeled_file = "reddit-sentiment/data/labeled_comments.csv"
+model_path = "trained_model/reddit-roberta-final"
+master_file = "data/wsb_master_comments.csv"
+labeled_file = "data/labeled_comments.csv"
 
 # === Load Model ===
 tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
