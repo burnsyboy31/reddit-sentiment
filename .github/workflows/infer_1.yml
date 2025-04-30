@@ -21,29 +21,36 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install dependencies
         run: |
           pip install torch transformers pandas
 
-      - name: Run label script
+      - name: Run label script and capture count
         env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}  # if using a private model
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        shell: bash
         run: |
-          python label_new_comments.py
+          output=$(python label_new_comments.py | tee /dev/stdout)
+          count=$(echo "$output" | grep -oP '✅ Labeled \K[0-9]+' || echo 0)
+          echo "Labeled count: $count"
+          echo "LABEL_COUNT=$count" >> $GITHUB_ENV
 
       - name: Commit and push updated CSV
+        shell: bash
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Extract new label count
-          count=$(grep -oP '✅ Labeled \K[0-9]+' label_log.txt || echo 0)
-
-          # Stage correct file
           git add data/labeled_comments.csv
-
-          git commit -m "🤖 Labeled $count new Reddit comments on $(date)" || echo "No changes to commit"
+          git commit -m "🤖 Labeled $LABEL_COUNT new Reddit comments on '$(date)'" || echo "No changes to commit"
           git push
-        Shell: bash
 
 
