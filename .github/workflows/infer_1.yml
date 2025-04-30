@@ -32,17 +32,18 @@ jobs:
           python label_new_comments.py
 
       - name: Commit and push updated CSV
-  run: |
-    git config --global user.name "github-actions[bot]"
-    git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-    # Extract new label count
-    count=$(grep -oP '✅ Labeled \K[0-9]+' label_log.txt || echo 0)
+          # Extract new label count
+          count=$(grep -oP '✅ Labeled \K[0-9]+' label_log.txt || echo 0)
 
-    # Stage correct file
-    git add data/labeled_comments.csv
+          # Stage correct file
+          git add data/labeled_comments.csv
 
-    git commit -m "🤖 Labeled $count new Reddit comments on $(date)" || echo "No changes to commit"
-    git push
-  shell: bash
+          git commit -m "🤖 Labeled $count new Reddit comments on $(date)" || echo "No changes to commit"
+          git push
+        Shell: bash
+
 
