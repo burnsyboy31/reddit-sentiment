@@ -33,15 +33,12 @@ jobs:
         run: |
           pip install torch transformers pandas
 
-      - name: Run label script and capture count
+      - name: Run label script
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         shell: bash
         run: |
-          output=$(python label_new_comments.py | tee /dev/stdout)
-          count=$(echo "$output" | grep -oP '✅ Labeled \K[0-9]+' || echo 0)
-          echo "Labeled count: $count"
-          echo "LABEL_COUNT=$count" >> $GITHUB_ENV
+          python label_new_comments.py
 
       - name: Commit and push updated CSV
         shell: bash
@@ -50,7 +47,5 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           git add data/labeled_comments.csv
-          git commit -m "🤖 Labeled $LABEL_COUNT new Reddit comments on '$(date)'" || echo "No changes to commit"
+          git commit -m "🤖 Labeled new Reddit comments on '$(date)'" || echo "No changes to commit"
           git push
-
-
