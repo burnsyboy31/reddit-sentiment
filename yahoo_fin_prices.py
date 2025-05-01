@@ -20,18 +20,34 @@ end_date = datetime.today().strftime('%Y-%m-%d')
 combined_df = pd.DataFrame()
 
 for ticker in tickers:
-    try:
-        print(f"Fetching {ticker}...")
-        df = yf.download(ticker, start=start_date, end=end_date, interval='1d', progress=False)['Close']
-        df = df.rename(ticker)
-        combined_df = pd.concat([combined_df, df], axis=1)
-        time.sleep(2)  # pause between requests to avoid rate limit
-    except Exception as e:
-        print(f"❌ Failed to fetch {ticker}: {e}")
+    success = False
+    retries = 0
+    max_retries = 3
+    wait_time = 5  # start with 5 seconds
+
+    while not success and retries < max_retries:
+        try:
+            print(f"Fetching {ticker} (Attempt {retries + 1})...")
+            df = yf.download(ticker, start=start_date, end=end_date, interval='1d', progress=False)['Close']
+            df = df.rename(ticker)
+            combined_df = pd.concat([combined_df, df], axis=1)
+            success = True
+        except Exception as e:
+            print(f"❌ Failed to fetch {ticker}: {e}")
+            retries += 1
+            if retries < max_retries:
+                print(f"🔄 Retrying {ticker} after {wait_time} seconds...")
+                time.sleep(wait_time)
+                wait_time *= 2  # exponential backoff
+            else:
+                print(f"⚠ Giving up on {ticker} after {max_retries} attempts.")
 
 # Reset index to include dates as a column
-combined_df.reset_index(inplace=True)
-combined_df['Date'] = combined_df['Date'].astype(str)
+if not combined_df.empty:
+    combined_df.reset_index(inplace=True)
+    combined_df['Date'] = combined_df['Date'].astype(str)
+else:
+    print("⚠ No data fetched from any ticker.")
 
 # Load Google Sheets credentials
 credentials_json = os.getenv('GOOGLE_SHEETS_CREDENTIALS')
@@ -48,13 +64,12 @@ worksheet_name = 'Sheet2'            # <<< UPDATE IF NEEDED
 spreadsheet = gc.open(spreadsheet_name)
 worksheet = spreadsheet.worksheet(worksheet_name)
 
-# Clear worksheet before updating
-worksheet.clear()
-
-# Upload data (if any)
+# Upload to Google Sheet if data exists
 if not combined_df.empty:
+    worksheet.clear()
     data_to_upload = [combined_df.columns.tolist()] + combined_df.values.tolist()
     worksheet.update(data_to_upload)
     print(f"✅ Uploaded {len(combined_df)} rows to Google Sheet '{spreadsheet_name}' → tab '{worksheet_name}'")
 else:
     print("⚠ No data to upload — all ticker fetches failed or were empty.")
+
