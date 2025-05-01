@@ -40,6 +40,12 @@ jobs:
         run: |
           python label_new_comments.py
 
+      - name: Sync entire CSV to Google Sheets
+        env:
+          GOOGLE_SHEETS_CREDENTIALS: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}
+        run: |
+          python sync_to_sheets.py
+          
       - name: Commit and push updated CSV
         shell: bash
         run: |
