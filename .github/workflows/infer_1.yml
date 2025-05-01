@@ -44,6 +44,7 @@ jobs:
         env:
           GOOGLE_SHEETS_CREDENTIALS: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}
         run: |
+          pip install pandas gspread
           python sync_to_sheets.py
           
       - name: Commit and push updated CSV
