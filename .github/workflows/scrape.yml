@@ -33,6 +33,13 @@ jobs:
           REDDIT_SECRET: ${{ secrets.REDDIT_SECRET }}
           REDDIT_USER_AGENT: ${{ secrets.REDDIT_USER_AGENT }}
 
+      - name: Sync entire CSV to Google Sheets
+        env:
+          GOOGLE_SHEETS_CREDENTIALS: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}
+        run: |
+          pip install yfinance pandas gspread
+          python yahoo_fin_prices.py
+
       - name: Commit and push updated master CSV
         run: |
           git config --global user.name "github-actions[bot]"
