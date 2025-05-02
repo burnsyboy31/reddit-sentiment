@@ -37,8 +37,8 @@ jobs:
         env:
           GOOGLE_SHEETS_CREDENTIALS: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}
         run: |
-          pip install yfinance pandas gspread
-          python yahoo_fin_prices.py
+          pip install pandas gspread requests
+          python alpha_tick.py
 
       - name: Commit and push updated master CSV
         run: |
