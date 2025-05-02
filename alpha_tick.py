@@ -15,7 +15,7 @@ symbols = {
     'SPY': 'TIME_SERIES_DAILY',    # S&P 500 ETF
     'DIA': 'TIME_SERIES_DAILY',    # Dow ETF
     'QQQ': 'TIME_SERIES_DAILY',    # Nasdaq ETF
-    'XAUUSD': 'FX_DAILY',          # Gold spot
+    'GLD': 'TIME_SERIES_DAILY',      # Gold spot
     'IEF': 'TIME_SERIES_DAILY'     # 7–10Y Treasury ETF
 }
 
