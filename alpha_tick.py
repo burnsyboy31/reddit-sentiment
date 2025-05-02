@@ -28,6 +28,7 @@ for symbol, function in symbols.items():
 
     if response.status_code == 200:
         data = response.json()
+        print(data)
         if function == 'FX_DAILY':
             timeseries = data.get('Time Series FX (Daily)', {})
         else:
