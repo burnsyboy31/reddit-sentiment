@@ -67,8 +67,8 @@ credentials = json.loads(credentials_json)
 gc = gspread.service_account_from_dict(credentials)
 
 # Open target Google Sheet
-spreadsheet_name = 'Your Google Sheet Name Here'  # <<< UPDATE
-worksheet_name = 'Sheet1'                         # <<< UPDATE
+spreadsheet_name = 'labeled_data'  # <<< UPDATE
+worksheet_name = 'Sheet2'                         # <<< UPDATE
 spreadsheet = gc.open(spreadsheet_name)
 worksheet = spreadsheet.worksheet(worksheet_name)
 
