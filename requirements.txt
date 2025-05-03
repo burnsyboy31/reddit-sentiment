@@ -4,3 +4,4 @@ spacy
 openai
 python-dotenv
 tqdm
+
