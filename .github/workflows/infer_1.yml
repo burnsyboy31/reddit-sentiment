@@ -2,7 +2,7 @@ name: Label New Reddit Comments
 
 on:
   schedule:
-    - cron: '0 */12 * * *'  # every 6 hours
+    - cron: cron: '0 */6 * * *' # every 6 hours
   workflow_dispatch:
 
 permissions:
