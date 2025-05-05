@@ -17,14 +17,26 @@ tokenizer = AutoTokenizer.from_pretrained(model_path)
 model = AutoModelForSequenceClassification.from_pretrained(model_path)
 model.eval()
 
-# === Load Master Data ===
+# === Load Master and Previous Labeled Data ===
 df_master = pd.read_csv(master_file)
+if os.path.exists(labeled_file):
+    df_prev = pd.read_csv(labeled_file)
+    seen_ids = set(df_prev['comment_id'])
+else:
+    df_prev = pd.DataFrame(columns=["comment_id", "raw_body", "score", "sentiment_label", "created_utc"])
+    seen_ids = set()
 
-print(f"🔍 Relabeling all {len(df_master)} comments from master file.")
+# === Filter New Comments ===
+df_new = df_master[~df_master['comment_id'].isin(seen_ids)].copy()
+if df_new.empty:
+    print("✅ No new comments to label.")
+    exit()
+
+print(f"🔍 Found {len(df_new)} new comments to label.")
 
 # === Predict Labels in Batches ===
 label_map = {0: "bullish", 1: "bearish", 2: "neutral"}
-texts = df_master["raw_body"].tolist()
+texts = df_new["raw_body"].tolist()
 batch_size = 32
 predictions = []
 
@@ -36,13 +48,16 @@ for i in range(0, len(texts), batch_size):
         preds = torch.argmax(outputs.logits, dim=1)
         predictions.extend(preds.tolist())
 
-df_master["sentiment_label"] = [label_map[i] for i in predictions]
+df_new["sentiment_label"] = [label_map[i] for i in predictions]
 
 # === Keep Only Needed Columns ===
-df_final = df_master[["comment_id", "raw_body", "score", "sentiment_label", "created_utc"]]
+df_new = df_new[["comment_id", "raw_body", "score", "sentiment_label", "created_utc"]]
 
-# === Save All Labeled Comments ===
+# === Append and Save ===
+df_final = pd.concat([df_prev, df_new], ignore_index=True)
 df_final.to_csv(labeled_file, index=False)
+
+print(f"✅ Labeled {len(df_new)} new comments. Saved to {labeled_file}.")
 
 print(f"✅ Relabeled all {len(df_final)} comments. Saved to {labeled_file}.")
 
