@@ -36,7 +36,7 @@ print(f"🔍 Found {len(df_new)} new comments to label.")
 
 # === Predict Labels in Batches ===
 label_map = {0: "bullish", 1: "bearish", 2: "neutral"}
-texts = df_new["raw_body"].tolist()
+texts = df_new["raw_body"].dropna().astype(str).tolist()
 batch_size = 32
 predictions = []
 
