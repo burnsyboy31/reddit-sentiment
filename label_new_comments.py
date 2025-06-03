@@ -28,6 +28,7 @@ else:
 
 # === Filter New Comments ===
 df_new = df_master[~df_master['comment_id'].isin(seen_ids)].copy()
+df_new = df_new.dropna(subset=["raw_body"]) 
 if df_new.empty:
     print("✅ No new comments to label.")
     exit()
